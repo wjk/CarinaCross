@@ -33,7 +33,6 @@ mode = :full
 outfile = nil
 
 while arg = ARGV.shift
-  puts "arg = #{arg}"
   case arg
   when '-o'
     outfile = ARGV.shift
