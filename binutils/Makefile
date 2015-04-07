@@ -20,7 +20,7 @@ libiberty/Makefile :
 	@touch .libiberty.stamp
 
 opcodes/Makefile :
-	cd opcodes && ./configure --prefix=$(PREFIX)
+	cd opcodes && ./configure --prefix=$(PREFIX) --target=$(TARGET)
 
 .libopcodes.stamp : opcodes/Makefile .libiberty.stamp
 	make -C opcodes
@@ -29,14 +29,14 @@ opcodes/Makefile :
 bfd/Makefile :
 	cd bfd && ./configure --prefix=$(PREFIX) --target=$(TARGET)
 
-.libbfd.stamp : bfd/Makefile .libopcodes.stamp
+.libbfd.stamp : bfd/Makefile
 	make -C bfd
 	@touch .libbfd.stamp
 
-as/Makefile : .libbfd.stamp
+as/Makefile : .libopcodes.stamp
 	cd as && ./configure --prefix=$(PREFIX) --target=$(TARGET)
 
-.as.stamp : as/Makefile .libbfd.stamp
+.as.stamp : as/Makefile .libopcodes.stamp
 	make -C as
 	@touch .as.stamp
 

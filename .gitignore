@@ -5,6 +5,8 @@
 # Build products:
 *.o
 *.a
+*.la
+*.lo
 
 # Autotools output files:
 config.log

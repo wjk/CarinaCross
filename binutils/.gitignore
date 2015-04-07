@@ -1,5 +1,6 @@
 # Autoconf products
 .deps
+.libs
 bfd/**/Makefile
 bfd/config.h
 
@@ -9,4 +10,21 @@ libiberty/config.h
 opcodes/**/Makefile
 opcodes/config.h
 
+as/**/Makefile
+as/config.h
+
+ld/**/Makefile
+ld/config.h
+
 */stamp-*
+*.stamp
+*/libtool
+
+# Build products
+as/.gdbinit
+as/po/Makefile.in
+as/po/POTFILES
+bfd/doc/chw*
+bfd/po/*-POTFILES
+ld/po/Makefile.in
+ld/po/POTFILES
