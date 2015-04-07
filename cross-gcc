@@ -86,9 +86,9 @@ begin
       
       outfile ||= 'a.out'
       linker = which "#{target}-ld"
-      linker_argv << intermediate_object.path
-      linker_argv << '-o' << outfile
-      system linker, *linker_argv
+      ld_argv << intermediate_object.path
+      ld_argv << '-o' << outfile
+      system linker, *ld_argv
     ensure
       intermediate_object.unlink
     end
