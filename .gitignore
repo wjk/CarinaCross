@@ -1,2 +1,6 @@
 .DS_Store
 *.nocommit
+
+# Autotools output files:
+config.log
+config.status
