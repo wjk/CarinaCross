@@ -54,6 +54,12 @@ libbfd : .libbfd.stamp
 libopcodes : .libopcodes.stamp
 libiberty : .libiberty.stamp
 
+.PHONY : install
+install : as ld
+	mkdir -p $(PREFIX)/bin
+	install as/as-new $(PREFIX)/bin/$(TARGET)-as
+	install ld/ld-new $(PREFIX)/bin/$(TARGET)-ld
+
 .PHONY : clean
 clean :
 	-make -C libiberty clean
