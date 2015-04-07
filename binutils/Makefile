@@ -19,21 +19,21 @@ libiberty/Makefile :
 	make -C libiberty
 	@touch .libiberty.stamp
 
-libopcodes/Makefile :
-	cd libopcodes && ./configure --prefix=$(PREFIX)
+opcodes/Makefile :
+	cd opcodes && ./configure --prefix=$(PREFIX)
 
-.libopcodes.stamp : libopcodes/Makefile .libiberty.stamp
-	make -C libopcodes
+.libopcodes.stamp : opcodes/Makefile .libiberty.stamp
+	make -C opcodes
 	@touch .libopcodes.stamp
 
-libbfd/Makefile :
-	cd libbfd && ./configure --prefix=$(PREFIX) --target=$(TARGET)
+bfd/Makefile :
+	cd bfd && ./configure --prefix=$(PREFIX) --target=$(TARGET)
 
-.libbfd.stamp : libbfd/Makefile .libopcodes.stamp
-	make -C libbfd
+.libbfd.stamp : bfd/Makefile .libopcodes.stamp
+	make -C bfd
 	@touch .libbfd.stamp
 
-as/Makefile : libbfd/compile.stamp
+as/Makefile : .libbfd.stamp
 	cd as && ./configure --prefix=$(PREFIX) --target=$(TARGET)
 
 .as.stamp : as/Makefile .libbfd.stamp
@@ -48,11 +48,11 @@ ld/Makefile :
 	@touch .ld.stamp
 
 .PHONY : ld as libbfd libopcodes libiberty
-ld : ld/compile.stamp
-as : as/compile.stamp
-libbfd : libbfd/compile.stamp
-libopcodes : libopcodes/compile.stamp
-libiberty : libiberty/compile.stamp
+ld : .ld.stamp
+as : .as.stamp
+libbfd : .libbfd.stamp
+libopcodes : .libopcodes.stamp
+libiberty : .libiberty.stamp
 
 .PHONY : clean
 clean :

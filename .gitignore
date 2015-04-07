@@ -2,6 +2,10 @@
 *.nocommit
 .*.stamp
 
+# Build products:
+*.o
+*.a
+
 # Autotools output files:
 config.log
 config.status

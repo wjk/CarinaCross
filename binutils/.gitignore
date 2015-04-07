@@ -1,0 +1,12 @@
+# Autoconf products
+.deps
+bfd/**/Makefile
+bfd/config.h
+
+libiberty/**/Makefile
+libiberty/config.h
+
+opcodes/**/Makefile
+opcodes/config.h
+
+*/stamp-*
