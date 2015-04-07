@@ -1,0 +1,100 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+
+require 'tempfile'
+
+def error(msg)
+  STDERR.puts "error: " + msg.to_s
+  exit 1
+end
+
+def which(cmd)
+  pathname = `which '#{cmd}'`
+  error "required executable '#{cmd}' not found" if $?.exitstatus != 0
+  pathname.chomp
+end
+
+def system(*argv)
+  super
+  
+  status = $?.exitstatus
+  error "external program '#{argv[0]}' failed with code #{status}" if status != 0;
+end
+
+# Main program begins here.
+target = File.basename($0)
+target.gsub! %r{-gcc$}, ''
+
+clang = which 'clang';
+clang_argv = %W[-S -target #{target}]
+asm_argv = []
+ld_argv = []
+mode = :full
+outfile = nil
+
+while arg = ARGV.shift
+  puts "arg = #{arg}"
+  case arg
+  when '-o'
+    outfile = ARGV.shift
+  when '-c'
+    mode = :object
+  when '-S'
+    mode = :asm
+  when /^-[lL]/
+    ld_argv << arg
+  when /^-Wl,/
+    parts = arg.split /,/
+    parts.shift # remove -Wl,
+    parts.each do |arg|
+      ld_argv << arg
+    end
+  when /^-Wa,/
+    parts = arg.split /,/
+    parts.shift # remove -Wa,
+    parts.each do |arg|
+      asm_argv << arg
+    end
+  else
+    clang_argv << arg
+  end
+end
+
+temp_asm = Tempfile.new 'cross-gcc'
+begin
+  clang_argv << '-o' << temp_asm.path
+  system clang, *clang_argv
+  
+  if mode == :asm
+    outfile ||= 'a.out.s'
+    File.link(temp_asm.path, outfile)
+    exit 0
+  elsif mode == :object
+    outfile ||= 'a.out.o'
+    asm = which "#{target}-as"
+    asm_argv << temp_asm.path
+    asm_argv << '-o' << outfile
+    
+    system asm, *asm_argv
+  elsif mode == :full
+    begin
+      intermediate_object = Tempfile.new 'cross-gcc-object'
+      asm = which "#{target}-as"
+      asm_argv << temp_asm.path
+      asm_argv << '-o' << intermediate_object.path
+      system asm, *asm_argv
+      
+      outfile ||= 'a.out'
+      linker = which "#{target}-ld"
+      linker_argv << intermediate_object.path
+      linker_argv << '-o' << outfile
+      system linker, *linker_argv
+    ensure
+      intermediate_object.unlink
+    end
+  else
+    error "unrecognized mode '#{mode.to_s}'"
+  end
+ensure
+  temp_asm.unlink
+end
