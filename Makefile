@@ -1,13 +1,13 @@
 ifeq ($(TARGET),)
  TARGET ?= amd64-elf-linux
- export TARGET
  $(info note: $$(TARGET) defaults to amd64-elf-linux)
 endif
 ifeq ($(PREFIX),)
  PREFIX ?= /usr/local
- export PREFIX
  $(warning $$(PREFIX) not set, using /usr/local)
 endif
+export TARGET
+export PREFIX
 
 .PHONY : all
 .DEFAULT_GOAL : all
