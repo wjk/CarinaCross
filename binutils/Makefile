@@ -6,6 +6,12 @@ ifeq ($(TARGET),)
  $(error $$(TARGET) must be specified)
 endif
 
+# This target must come first.
+.PHONY : all
+.DEFAULT_GOAL : all
+all : as ld
+
+
 libiberty/Makefile :
 	cd libiberty && ./configure --prefix=$(PREFIX)
 
@@ -56,7 +62,3 @@ clean :
 	-make -C as clean
 	-make -C ld clean
 	rm -f .*.stamp
-
-.PHONY : all
-.DEFAULT_GOAL : all
-all : as ld
