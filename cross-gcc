@@ -2,6 +2,7 @@
 # -*- ruby -*-
 
 require 'tempfile'
+require 'fileutils'
 
 def error(msg)
   STDERR.puts "error: " + msg.to_s
@@ -66,7 +67,7 @@ begin
   
   if mode == :asm
     outfile ||= 'a.out.s'
-    File.link(temp_asm.path, outfile)
+    FileUtils.cp(temp_asm.path, outfile)
     exit 0
   elsif mode == :object
     outfile ||= 'a.out.o'
