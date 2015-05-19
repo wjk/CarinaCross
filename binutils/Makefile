@@ -22,14 +22,14 @@ libiberty/Makefile :
 opcodes/Makefile :
 	cd opcodes && ./configure --prefix=$(PREFIX) --target=$(TARGET)
 
-.libopcodes.stamp : opcodes/Makefile .libiberty.stamp
+.libopcodes.stamp : opcodes/Makefile .libbfd.stamp
 	make -C opcodes
 	@touch .libopcodes.stamp
 
 bfd/Makefile :
 	cd bfd && ./configure --prefix=$(PREFIX) --target=$(TARGET)
 
-.libbfd.stamp : bfd/Makefile
+.libbfd.stamp : bfd/Makefile .libiberty.stamp
 	make -C bfd
 	@touch .libbfd.stamp
 
