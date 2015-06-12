@@ -5,101 +5,85 @@ require 'tempfile'
 require 'fileutils'
 
 def error(msg)
-  STDERR.puts "error: " + msg.to_s
-  exit 1
+    STDERR.puts 'error: ' + msg.to_s
+    exit 1
 end
 
 def which(cmd)
-  pathname = `which '#{cmd}'`
-  error "required executable '#{cmd}' not found" if $?.exitstatus != 0
-  pathname.chomp
+    pathname = `which #{cmd}`
+    error "required executable #{cmd} not found" if $?.exitstatus != 0
+    pathname.chomp
 end
 
 def system(*argv)
-  super
-  
-  status = $?.exitstatus
-  error "external program '#{argv[0]}' failed with code #{status}" if status != 0;
+    super
+
+    status = $?.exitstatus
+    error "external program #{argv[0]} failed with code #{status}" if status != 0
 end
 
 # Main program begins here.
 target = File.basename($0)
 target.gsub! %r{-gcc$}, ''
 
-clang = which 'clang';
-clang_argv = %W[-S -target #{target}]
-asm_argv = []
+clang = which 'clang'
+clang_argv = [ '-target', target ]
 ld_argv = []
 mode = :full
 outfile = nil
 
 while arg = ARGV.shift
-  case arg
-  when '-o'
-    outfile = ARGV.shift
-  when '-c'
-    mode = :object
-  when '-S'
-    mode = :asm
-  when /^-[lL]/
-    ld_argv << arg
-  when /^-Wl,/
-    parts = arg.split /,/
-    parts.shift # remove -Wl,
-    parts.each do |arg|
-      ld_argv << arg
+    case arg
+    when '-o'
+        outfile = ARGV.shift
+    when '-c'
+        mode = :object
+    when '-S'
+        mode = :asm
+    when /^-[lL]/
+        lv_argv << arg
+    when /^-Wl,/
+        parts = arg.split /,/
+        parts.shift # remove -Wl
+        ld_argv.push *parts
+    when /^-/
+        clang_argv << arg
+    else
+        infile = arg
+        clang_argv << arg
     end
-  when /^-Wa,/
-    parts = arg.split /,/
-    parts.shift # remove -Wa,
-    parts.each do |arg|
-      asm_argv << arg
-    end
-  when /^-/
-    clang_argv << arg
-  else
-    infile = arg
-    clang_argv << arg
-  end
 end
 
-temp_asm = Tempfile.new 'cross-gcc'
+temp_output = Tempfile.new 'cross-gcc'
 begin
-  clang_argv << '-o' << temp_asm.path
-  system clang, *clang_argv
-  
-  if mode == :asm
-    infile ||= 'source'
-    outfile ||= "#{File.basename(infile, '.*')}.s"
-    FileUtils.cp(temp_asm.path, outfile)
-    exit 0
-  elsif mode == :object
-    infile ||= 'source'
-    outfile ||= "#{File.basename(infile, '.*')}.o"
-    asm = which "#{target}-as"
-    asm_argv << temp_asm.path
-    asm_argv << '-o' << outfile
-    
-    system asm, *asm_argv
-  elsif mode == :full
-    begin
-      intermediate_object = Tempfile.new 'cross-gcc-object'
-      asm = which "#{target}-as"
-      asm_argv << temp_asm.path
-      asm_argv << '-o' << intermediate_object.path
-      system asm, *asm_argv
-      
-      outfile ||= 'a.out'
-      linker = which "#{target}-ld"
-      ld_argv << intermediate_object.path
-      ld_argv << '-o' << outfile
-      system linker, *ld_argv
-    ensure
-      intermediate_object.unlink
+    if mode == :asm
+        clang_argv.push *[ '-S', '-o', temp_output.path ]
+        system clang, *clang_argv
+
+        infile ||= 'source'
+        outfile ||= "#{File.basename(infile, '.*')}.s"
+        FileUtils.cp(temp_output.path, outfile)
+        exit 0
+    elsif mode == :object
+        clang_argv.push *[ '-c', '-o', temp_output.path ]
+        system clang, *clang_argv
+
+        infile ||= source
+        outfile ||= "#{File.basename(infile, '.*')}.o"
+        FileUtils.cp(temp_output.path, outfile)
+        exit 0
+    elsif mode == :full
+        clang_argv.push *[ '-c', '-o', temp_output.path ]
+        system clang, *clang_argv
+
+        outfile ||= 'a.out'
+        linker = which "#{target}-ld"
+        ld_argv << temp_output.path
+        ld_argv << '-o' << outfile
+        system linker, *ld_argv
+    else
+        error "unrecognized mode #{mode.to_s}"
     end
-  else
-    error "unrecognized mode '#{mode.to_s}'"
-  end
 ensure
-  temp_asm.unlink
+    temp_output.unlink
 end
