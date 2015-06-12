@@ -55,7 +55,10 @@ while arg = ARGV.shift
     parts.each do |arg|
       asm_argv << arg
     end
+  when /^-/
+    clang_argv << arg
   else
+    infile = arg
     clang_argv << arg
   end
 end
@@ -66,11 +69,13 @@ begin
   system clang, *clang_argv
   
   if mode == :asm
-    outfile ||= 'a.out.s'
+    infile ||= 'source'
+    outfile ||= "#{File.basename(infile, '.*')}.s"
     FileUtils.cp(temp_asm.path, outfile)
     exit 0
   elsif mode == :object
-    outfile ||= 'a.out.o'
+    infile ||= 'source'
+    outfile ||= "#{File.basename(infile, '.*')}.o"
     asm = which "#{target}-as"
     asm_argv << temp_asm.path
     asm_argv << '-o' << outfile
