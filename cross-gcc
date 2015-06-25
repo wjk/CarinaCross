@@ -41,7 +41,7 @@ while arg = ARGV.shift
     when '-S'
         mode = :asm
     when /^-[lL]/
-        lv_argv << arg
+        ld_argv << arg
     when /^-Wl,/
         parts = arg.split /,/
         parts.shift # remove -Wl
