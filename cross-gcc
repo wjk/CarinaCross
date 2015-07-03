@@ -49,8 +49,18 @@ while arg = ARGV.shift
     when /^-/
         clang_argv << arg
     else
-        infile = arg
-        clang_argv << arg
+        # This is a relatively stupid test, but it should remedy the
+        # clang warnings about non-source files being passed to clang -c.
+        case arg
+        when /\.obj$/, /\.o$/
+            mode = :link
+            ld_argv << arg
+        else
+            error "Cannot currently handle mixed source and object files" if mode == :link
+
+            infile = arg
+            clang_argv << arg
+        end
     end
 end
 
@@ -68,7 +78,7 @@ begin
         clang_argv.push *[ '-c', '-o', temp_output.path ]
         system clang, *clang_argv
 
-        infile ||= source
+        infile ||= 'source'
         outfile ||= "#{File.basename(infile, '.*')}.o"
         FileUtils.cp(temp_output.path, outfile)
         exit 0
@@ -80,6 +90,15 @@ begin
         linker = which "#{target}-ld"
         ld_argv << temp_output.path
         ld_argv << '-o' << outfile
+        ld_argv << '-lmingw32' << '-lmsvcrt'
+        system linker, *ld_argv
+    elsif mode == :link
+        outfile ||= 'a.out'
+        linker = which "#{target}-ld"
+        ld_argv << '-o' << outfile
+        ld_argv << '-lmingw32' << '-lmsvcrt'
+
+        puts linker, *ld_argv
         system linker, *ld_argv
     else
         error "unrecognized mode #{mode.to_s}"
