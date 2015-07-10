@@ -90,13 +90,11 @@ begin
         linker = which "#{target}-ld"
         ld_argv << temp_output.path
         ld_argv << '-o' << outfile
-        ld_argv << '-lmingw32' << '-lmsvcrt'
         system linker, *ld_argv
     elsif mode == :link
         outfile ||= 'a.out'
         linker = which "#{target}-ld"
         ld_argv << '-o' << outfile
-        ld_argv << '-lmingw32' << '-lmsvcrt'
 
         puts linker, *ld_argv
         system linker, *ld_argv
