@@ -95,8 +95,6 @@ begin
         outfile ||= 'a.out'
         linker = which "#{target}-ld"
         ld_argv << '-o' << outfile
-
-        puts linker, *ld_argv
         system linker, *ld_argv
     else
         error "unrecognized mode #{mode.to_s}"
